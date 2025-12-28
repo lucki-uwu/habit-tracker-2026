@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Habit Tracker 2026</title>
+
+<style>
+  :root{
+    --bg:#0b0b0c;
+    --card:#141417;
+    --card2:#101013;
+    --line:#262630;
+    --text:#f5f5f7;
+    --muted:#b7b7c0;
+    --ok:#24d18a;
+    --bad:#ff5a6a;
+    --btn:#1b1b21;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:18px 14px 28px}
+  h1{font-size:20px;margin:6px 0 2px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    margin:10px 0;
+  }
+  .kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .box{
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+  }
+  .label{color:var(--muted);font-size:12px}
+  .value{font-size:20px;font-weight:700;margin-top:2px}
+  .small{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}
+  .task{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 10px;border:1px solid var(--line);border-radius:12px;
+    margin:8px 0;background:var(--card2);
+  }
+  .task-left{display:flex;gap:10px;align-items:center}
+  .task-title{font-weight:600}
+  .pill{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 8px;border-radius:999px}
+  .toggle{
+    width:46px;height:28px;border-radius:999px;border:1px solid var(--line);
+    background:#0f0f12;position:relative;flex:0 0 auto;
+    opacity:1;
+  }
+  .toggle .dot{
+    width:22px;height:22px;border-radius:999px;position:absolute;top:2px;left:2px;
+    background:#6b6b77;transition:all .15s ease;
+  }
+  .toggle.on{background:rgba(36,209,138,0.18);border-color:rgba(36,209,138,0.35)}
+  .toggle.on .dot{left:22px;background:var(--ok)}
+  .toggle.disabled{opacity:.45}
+  button{
+    background:var(--btn);color:var(--text);border:1px solid var(--line);
+    padding:10px 12px;border-radius:12px;font-weight:600;
+  }
+  button:active{transform:translateY(1px)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .progress{
+    height:10px;border-radius:999px;background:#0f0f12;border:1px solid var(--line);
+    overflow:hidden;margin-top:10px
+  }
+  .progress > div{height:100%;background:var(--ok);width:0%}
+  .chain{display:flex;gap:6px;overflow-x:auto;padding:6px 2px}
+  .dotday{width:14px;height:14px;border-radius:999px;border:1px solid var(--line);flex:0 0 auto}
+  .dotday.g{background:rgba(36,209,138,0.9);border-color:rgba(36,209,138,0.25)}
+  .dotday.r{background:rgba(255,90,106,0.9);border-color:rgba(255,90,106,0.25)}
+  .badge{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .ok{color:var(--ok);font-weight:700}
+  .bad{color:var(--bad);font-weight:700}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Habit Tracker 2026</h1>
+  <div class="sub">4 tasks/day • $1 each • perfect 10-day streak +$10 • monthly grocery-only bonus +$75</div>
+
+  <div class="card kpi">
+    <div class="box">
+      <div class="label">Today</div>
+      <div class="value" id="todayDate">—</div>
+      <div class="small" id="todayProgress">0 / 4 complete</div>
+    </div>
+    <div class="box">
+      <div class="label">Total saved</div>
+      <div class="value" id="moneyTotal">$0</div>
+      <div class="small" id="moneyDetail">—</div>
+    </div>
+    <div class="box">
+      <div class="label">Current perfect streak</div>
+      <div class="value" id="streak">0</div>
+      <div class="small">consecutive 4/4 days</div>
+    </div>
+    <div class="box">
+      <div class="label">Goal progress</div>
+      <div class="value" id="goalPct">—</div>
+      <div class="small" id="goalDetail">—</div>
+      <div class="progress"><div id="goalBar"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label" style="margin-bottom:8px;">Today’s tasks</div>
+    <div id="taskList"></div>
+    <div class="small" id="lockNote"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Monthly bonus</div>
+    <div style="margin-top:8px;font-weight:650">No buying food except groceries <span class="badge">+$75</span></div>
+    <div class="small" id="monthRuleHint"></div>
+    <div class="task" style="margin-top:10px">
+      <div class="task-left">
+        <div>
+          <div class="task-title" id="monthLabel">This month: —</div>
+          <div class="small" id="monthStatus">—</div>
+        </div>
+      </div>
+      <div class="toggle" id="monthToggle" role="switch" aria-checked="false"><div class="dot"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Streak chain</div>
+    <div class="small" style="margin:8px 0 10px;">Green = perfect day (4/4). Red = not perfect.</div>
+    <div class="chain" id="chain"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">Monthly summary</div>
+    <div class="small" id="monthSummary">—</div>
+  </div>
+
+  <div class="card">
+    <div class="label">Settings</div>
+    <div class="row" style="margin-top:10px">
+      <button id="hardModeBtn">Hard mode: OFF</button>
+      <button id="reminderBtn">Daily reminder: OFF</button>
+      <button id="exportBtn">Export CSV</button>
+      <button id="wipeBtn">Wipe all data</button>
+    </div>
+    <div class="small" style="margin-top:10px">
+      Hard mode (optional): raises difficulty later. Reminder is a simple in-app toggle (no push notifications in a local file).
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ----------------- Config -----------------
+  const STORAGE_KEY = "habit2026_v2";
+  const GOAL = 1500;
+
+  const TASKS = [
+    "Full Workout or 30 min cardio",
+    "Read 15 Pages",
+    "10 Minute Tidy",
+    "< 3.5 Hour Screen Time"
+  ];
+
+  const DOLLARS_PER_TASK = 1;
+  const PERFECT_STREAK_BONUS_EVERY = 10;
+  const PERFECT_STREAK_BONUS_AMOUNT = 10;
+
+  const MONTHLY_BONUS_AMOUNT = 75;
+  const MONTHLY_BONUS_KEY = "groceryOnly";
+
+  // ----------------- Helpers -----------------
+  const fmtDate = (d) => d.toISOString().slice(0,10); // local ISO date not reliable; but OK if we use Date objects carefully
+  const fmtDateLocalISO = (d) => {
+    // Local YYYY-MM-DD (stable for NZ timezone etc.)
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  };
+  const niceDate = (iso) => {
+    const [y,m,d] = iso.split("-").map(Number);
+    const dt = new Date(y, m-1, d);
+    return dt.toLocaleDateString(undefined, { weekday:"short", year:"numeric", month:"short", day:"numeric" });
+  };
+  const niceMonth = (ym) => {
+    const [y,m] = ym.split("-").map(Number);
+    const dt = new Date(y, m-1, 1);
+    return dt.toLocaleDateString(undefined, { year:"numeric", month:"long" });
+  };
+  const isLastDayOfMonth = (dateObj) => {
+    const y = dateObj.getFullYear();
+    const m = dateObj.getMonth();
+    const last = new Date(y, m+1, 0).getDate();
+    return dateObj.getDate() === last;
+  };
+  const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+
+  // ----------------- Storage -----------------
+  const defaultState = () => ({
+    settings: { hardMode:false, reminder:false },
+    today: { date: fmtDateLocalISO(new Date()), checks:[false,false,false,false] },
+    history: {}, // map: "YYYY-MM-DD" -> [0/1,0/1,0/1,0/1]
+    months: {}   // map: "YYYY-MM" -> { groceryOnly:true/false }
+  });
+
+  const load = () => {
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultState();
+      const st = JSON.parse(raw);
+      if(!st || typeof st!=="object") return defaultState();
+      st.settings ??= { hardMode:false, reminder:false };
+      st.history ??= {};
+      st.months ??= {};
+      st.today ??= { date: fmtDateLocalISO(new Date()), checks:[false,false,false,false] };
+      if(!Array.isArray(st.today.checks) || st.today.checks.length!==4){
+        st.today.checks = [false,false,false,false];
+      }
+      return st;
+    }catch{
+      return defaultState();
+    }
+  };
+
+  const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  let state = load();
+
+  // ----------------- Day rollover (auto-finalize yesterday) -----------------
+  const todayISO = fmtDateLocalISO(new Date());
+  if(state.today.date !== todayISO){
+    // save old day into history
+    state.history[state.today.date] = state.today.checks.map(x=>x?1:0);
+    // if there is a gap, we don't need to create entries; streak logic will break on gaps
+    state.today = { date: todayISO, checks:[false,false,false,false] };
+    save();
+  } else {
+    // keep today's checks in sync with history if exists
+    const hist = state.history[todayISO];
+    if(Array.isArray(hist) && hist.length===4){
+      state.today.checks = hist.map(x=>!!x);
+    }
+  }
+
+  // Lock note (we lock by design: only today's checkboxes editable)
+  const lockNoteEl = document.getElementById("lockNote");
+  lockNoteEl.textContent = "Only today is editable. Past days are locked automatically.";
+
+  // ----------------- Render tasks -----------------
+  const taskListEl = document.getElementById("taskList");
+
+  const renderTasks = () => {
+    taskListEl.innerHTML = "";
+    TASKS.forEach((t, idx) => {
+      const row = document.createElement("div");
+      row.className = "task";
+
+      const left = document.createElement("div");
+      left.className = "task-left";
+      left.innerHTML = `
+        <div>
+          <div class="task-title">${escapeHtml(t)}</div>
+          <div class="small">$${DOLLARS_PER_TASK}</div>
+        </div>
+      `;
+
+      const toggle = document.createElement("div");
+      toggle.className = "toggle" + (state.today.checks[idx] ? " on" : "");
+      toggle.setAttribute("role","switch");
+      toggle.setAttribute("aria-checked", state.today.checks[idx] ? "true" : "false");
+      toggle.innerHTML = `<div class="dot"></div>`;
+
+      toggle.addEventListener("click", () => {
+        state.today.checks[idx] = !state.today.checks[idx];
+        // mirror to history for today
+        state.history[todayISO] = state.today.checks.map(x=>x?1:0);
+        save();
+        renderAll(); // update totals/streak without reload
+      });
+
+      row.appendChild(left);
+      row.appendChild(toggle);
+      taskListEl.appendChild(row);
+    });
+  };
+
+  // ----------------- Monthly checkbox -----------------
+  const monthToggle = document.getElementById("monthToggle");
+  const monthLabel = document.getElementById("monthLabel");
+  const monthStatus = document.getElementById("monthStatus");
+  const monthRuleHint = document.getElementById("monthRuleHint");
+
+  const currentYM = todayISO.slice(0,7);
+  state.months[currentYM] ??= { [MONTHLY_BONUS_KEY]: false };
+
+  const renderMonthly = () => {
+    const monthObj = state.months[currentYM] ?? { [MONTHLY_BONUS_KEY]: false };
+    const already = !!monthObj[MONTHLY_BONUS_KEY];
+    const lastDay = isLastDayOfMonth(new Date());
+
+    monthLabel.textContent = `This month: ${niceMonth(currentYM)}`;
+    monthRuleHint.textContent = lastDay
+      ? "It’s the last day of the month — you can tick this once if you followed the rule all month."
+      : "This checkbox unlocks only on the last day of the month.";
+
+    // Toggle state
+    const on = already;
+    monthToggle.className = "toggle" + (on ? " on" : "");
+    monthToggle.setAttribute("aria-checked", on ? "true" : "false");
+
+    // Disabled rules
+    const disabled = (!lastDay) || already;
+    if(disabled){
+      monthToggle.classList.add("disabled");
+    }else{
+      monthToggle.classList.remove("disabled");
+    }
+
+    monthStatus.innerHTML = already
+      ? `<span class="ok">Claimed</span> (+$${MONTHLY_BONUS_AMOUNT} added)`
+      : (lastDay
+          ? `<span class="badge">Available today</span> Tick if true`
+          : `<span class="muted">Locked</span> (available on last day)`
+        );
+
+    // Click handler
+    monthToggle.onclick = () => {
+      const monthObj2 = state.months[currentYM] ?? { [MONTHLY_BONUS_KEY]: false };
+      const already2 = !!monthObj2[MONTHLY_BONUS_KEY];
+      const lastDay2 = isLastDayOfMonth(new Date());
+      if(already2 || !lastDay2) return;
+
+      monthObj2[MONTHLY_BONUS_KEY] = true;
+      state.months[currentYM] = monthObj2;
+      save();
+      renderAll();
+    };
+  };
+
+  // ----------------- Calculations -----------------
+  const calc = () => {
+    const dates = Object.keys(state.history).sort(); // YYYY-MM-DD lexical sort works
+    let totalTasksCompleted = 0;
+    let perfectBonuses = 0;
+    let monthlyBonuses = 0;
+
+    // For chain + streak, we need to iterate in date order and break on gaps
+    let currentStreak = 0;
+    let chain = [];
+    let prev = null;
+
+    for(const d of dates){
+      // gap check
+      if(prev){
+        const prevDate = new Date(prev + "T00:00:00");
+        const curDate  = new Date(d + "T00:00:00");
+        const diffDays = Math.round((curDate - prevDate)/(1000*60*60*24));
+        if(diffDays !== 1){
+          currentStreak = 0;
+        }
+      }
+      prev = d;
+
+      const checks = state.history[d];
+      const done = Array.isArray(checks) ? checks.reduce((a,b)=>a+(b?1:0),0) : 0;
+      totalTasksCompleted += done;
+
+      const perfect = done === 4;
+      chain.push(perfect ? "g" : "r");
+
+      if(perfect){
+        currentStreak += 1;
+        if(currentStreak % PERFECT_STREAK_BONUS_EVERY === 0){
+          perfectBonuses += PERFECT_STREAK_BONUS_AMOUNT;
+        }
+      }else{
+        currentStreak = 0;
+      }
+    }
+
+    // monthly bonuses
+    for(const ym of Object.keys(state.months)){
+      const mo = state.months[ym];
+      if(mo && mo[MONTHLY_BONUS_KEY]) monthlyBonuses += MONTHLY_BONUS_AMOUNT;
+    }
+
+    // penalties: miss all 4 tasks (0/4) => -$2 (applied per day)
+    // We'll compute from history, but only for days present in history.
+    let penalties = 0;
+    for(const d of dates){
+      const checks = state.history[d];
+      const done = Array.isArray(checks) ? checks.reduce((a,b)=>a+(b?1:0),0) : 0;
+      if(done === 0) penalties += 2;
+    }
+
+    const base = totalTasksCompleted * DOLLARS_PER_TASK;
+    const total = base + perfectBonuses + monthlyBonuses - penalties;
+
+    return {
+      dates,
+      chain,
+      base,
+      perfectBonuses,
+      monthlyBonuses,
+      penalties,
+      total,
+      currentStreak
+    };
+  };
+
+  // ----------------- Monthly summary -----------------
+  const monthSummaryEl = document.getElementById("monthSummary");
+  const calcMonthlySummary = (dates) => {
+    const ym = currentYM;
+    const inMonth = dates.filter(d => d.startsWith(ym));
+    let taskCount = 0;
+    let perfectCount = 0;
+    let zeroCount = 0;
+
+    for(const d of inMonth){
+      const done = state.history[d]?.reduce((a,b)=>a+(b?1:0),0) ?? 0;
+      taskCount += done;
+      if(done === 4) perfectCount++;
+      if(done === 0) zeroCount++;
+    }
+
+    const claimed = !!(state.months[ym]?.[MONTHLY_BONUS_KEY]);
+    const monthlyBonusText = claimed ? `Monthly bonus: +$${MONTHLY_BONUS_AMOUNT} (claimed)` : `Monthly bonus: $0 (not claimed)`;
+
+    monthSummaryEl.innerHTML =
+      `${niceMonth(ym)}<br>` +
+      `Daily tasks completed: <span class="ok">${taskCount}</span> (=$${taskCount})<br>` +
+      `Perfect days: <span class="ok">${perfectCount}</span><br>` +
+      `0/4 days: <span class="bad">${zeroCount}</span> (penalty -$${zeroCount*2})<br>` +
+      `${monthlyBonusText}`;
+  };
+
+  // ----------------- Render all -----------------
+  const todayDateEl = document.getElementById("todayDate");
+  const todayProgressEl = document.getElementById("todayProgress");
+  const moneyTotalEl = document.getElementById("moneyTotal");
+  const moneyDetailEl = document.getElementById("moneyDetail");
+  const streakEl = document.getElementById("streak");
+  const goalPctEl = document.getElementById("goalPct");
+  const goalDetailEl = document.getElementById("goalDetail");
+  const goalBarEl = document.getElementById("goalBar");
+  const chainEl = document.getElementById("chain");
+
+  function renderAll(){
+    // Ensure today's entry exists in history (locked rule)
+    state.history[todayISO] = state.today.checks.map(x=>x?1:0);
+
+    renderTasks();
+    renderMonthly();
+
+    const r = calc();
+
+    todayDateEl.textContent = niceDate(todayISO);
+    const doneToday = state.today.checks.filter(Boolean).length;
+    todayProgressEl.textContent = `${doneToday} / 4 complete`;
+
+    moneyTotalEl.textContent = `$${Math.round(r.total)}`;
+    moneyDetailEl.textContent =
+      `$${r.base} from tasks + $${r.perfectBonuses} streak bonuses + $${r.monthlyBonuses} monthly bonuses - $${r.penalties} penalties`;
+
+    streakEl.textContent = r.currentStreak;
+
+    const pct = GOAL > 0 ? (r.total / GOAL) * 100 : 0;
+    goalPctEl.textContent = `${clamp(pct,0,999).toFixed(1)}%`;
+    goalDetailEl.textContent = `$${Math.round(r.total)} / $${GOAL}`;
+    goalBarEl.style.width = `${clamp(pct,0,100)}%`;
+
+    // chain
+    chainEl.innerHTML = "";
+    r.chain.slice(-90).forEach(c => { // show last 90 days for cleanliness
+      const dot = document.createElement("div");
+      dot.className = "dotday " + (c === "g" ? "g" : "r");
+      chainEl.appendChild(dot);
+    });
+
+    calcMonthlySummary(r.dates);
+
+    // Settings buttons reflect state
+    hardBtn.textContent = `Hard mode: ${state.settings.hardMode ? "ON" : "OFF"}`;
+    reminderBtn.textContent = `Daily reminder: ${state.settings.reminder ? "ON" : "OFF"}`;
+
+    save();
+  }
+
+  // ----------------- Settings + Export + Wipe -----------------
+  const hardBtn = document.getElementById("hardModeBtn");
+  const reminderBtn = document.getElementById("reminderBtn");
+  const exportBtn = document.getElementById("exportBtn");
+  const wipeBtn = document.getElementById("wipeBtn");
+
+  hardBtn.onclick = () => {
+    state.settings.hardMode = !state.settings.hardMode;
+    // (Hard mode behavior can be expanded later without changing your data model.)
+    save();
+    renderAll();
+  };
+
+  reminderBtn.onclick = () => {
+    state.settings.reminder = !state.settings.reminder;
+    save();
+    renderAll();
+    // Local HTML file cannot schedule real notifications reliably.
+    // This toggle is kept for future if you host it as a PWA.
+  };
+
+  exportBtn.onclick = () => {
+    const dates = Object.keys(state.history).sort();
+    // Include monthly bonus column
+    let csv = "date,workout_or_cardio,read_15_pages,tidy_10_min,screen_time_under_3_5h,monthly_grocery_only\n";
+    for(const d of dates){
+      const checks = state.history[d] ?? [0,0,0,0];
+      const ym = d.slice(0,7);
+      const monthly = (state.months[ym]?.[MONTHLY_BONUS_KEY]) ? 1 : 0;
+      csv += `${d},${checks.map(x=>x?1:0).join(",")},${monthly}\n`;
+    }
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "habit_2026.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  wipeBtn.onclick = () => {
+    const ok = confirm("Wipe ALL data? This cannot be undone.");
+    if(!ok) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state = defaultState();
+    save();
+    renderAll();
+  };
+
+  // ----------------- HTML escape -----------------
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[s]));
+  }
+
+  // ----------------- Init -----------------
+  renderAll();
+})();
+</script>
+</body>
+</html>
